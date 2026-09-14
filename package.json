@@ -1,0 +1,10 @@
+{
+  "name": "blast-maze",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cyberpunk arcade maze bomber developed with HTML5, CSS3, JavaScript, Canvas 2D and Node.js.",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  }
+}
