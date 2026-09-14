@@ -6,7 +6,7 @@ export class Player {
         this.width = 32;
         this.height = 32;
 
-        this.speed = 160;
+        this.speed = 120;
 
         this.lives = 3;
         this.bombs = 1;
@@ -16,6 +16,23 @@ export class Player {
 
         this.alive = true;
     }
+
+    move(dx, dy, deltaTime, collisionSystem) {
+    const newX = this.x + dx * this.speed * deltaTime;
+    const newY = this.y + dy * this.speed * deltaTime;
+
+    if (
+        collisionSystem.isPositionWalkable(
+            newX,
+            newY,
+            this.width,
+            this.height
+        )
+    ) {
+        this.x = newX;
+        this.y = newY;
+    }
+}
 
     reset(x, y) {
         this.x = x;
