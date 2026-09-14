@@ -6,6 +6,7 @@ import { Explosion } from "./entities/Explosion.js";
 import { MapGenerator } from "./systems/MapGenerator.js";
 import { CollisionSystem } from "./systems/CollisionSystem.js";
 import { ExplosionSystem } from "./systems/ExplosionSystem.js";
+import { Enemy } from "./entities/Enemy.js";
 
 const input = new Input();
 
@@ -22,13 +23,59 @@ const explosionSystem = new ExplosionSystem(mapGenerator);
 
 const bombs = [];
 const explosions = [];
+const enemies = [];
+
+const reachableCells =
+    mapGenerator.pathfinding.findReachableCells(
+        mapGenerator.playerSpawn.x,
+        mapGenerator.playerSpawn.y
+    );
+
+const enemySpawnCandidates =
+    reachableCells.filter(cell => {
+        const distance =
+            Math.abs(
+                cell.x - mapGenerator.playerSpawn.x
+            ) +
+            Math.abs(
+                cell.y - mapGenerator.playerSpawn.y
+            );
+
+        return distance >= 6;
+    });
+
+const enemySpawn =
+    enemySpawnCandidates[
+        Math.floor(
+            Math.random() *
+            enemySpawnCandidates.length
+        )
+    ];
+
+const rogue = new Enemy(
+    enemySpawn.x * mapGenerator.tileSize,
+    enemySpawn.y * mapGenerator.tileSize,
+    "rogue"
+);
+
+enemies.push(rogue);
 
 console.log("Blast Maze iniciado correctamente");
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+function checkPlayerEnemyCollision(player, enemy) {
+    return (
+        player.x < enemy.x + enemy.width &&
+        player.x + player.width > enemy.x &&
+        player.y < enemy.y + enemy.height &&
+        player.y + player.height > enemy.y
+    );
+}
+
 function update(deltaTime) {
+    player.update(deltaTime);
     let dx = 0;
     let dy = 0;
 
@@ -48,16 +95,33 @@ function update(deltaTime) {
         dx = 1;
     }
 
-    player.move(dx, dy, deltaTime, collisionSystem);
+    player.move(
+        dx,
+        dy,
+        deltaTime,
+        collisionSystem
+    );
 
-    if (input.wasPressed("Space") && player.bombs > 0) {
+    for (const enemy of enemies) {
+        enemy.update(
+            deltaTime,
+            collisionSystem
+        );
+    }
+
+    if (
+        input.wasPressed("Space") &&
+        player.bombs > 0
+    ) {
         const tileSize = mapGenerator.tileSize;
 
         const bombX =
-            Math.floor(player.x / tileSize) * tileSize;
+            Math.floor(player.x / tileSize) *
+            tileSize;
 
         const bombY =
-            Math.floor(player.y / tileSize) * tileSize;
+            Math.floor(player.y / tileSize) *
+            tileSize;
 
         bombs.push(
             new Bomb(
@@ -83,7 +147,9 @@ function update(deltaTime) {
                     bomb.range
                 );
 
-            explosionSystem.destroyBlocks(affectedCells);
+            explosionSystem.destroyBlocks(
+                affectedCells
+            );
 
             console.log(
                 "Explosión generada:",
@@ -96,18 +162,24 @@ function update(deltaTime) {
                 }
 
                 const otherBombX =
-                    otherBomb.x / mapGenerator.tileSize;
+                    otherBomb.x /
+                    mapGenerator.tileSize;
 
                 const otherBombY =
-                    otherBomb.y / mapGenerator.tileSize;
+                    otherBomb.y /
+                    mapGenerator.tileSize;
 
-                const hitBomb = affectedCells.some(
-                    cell =>
-                        cell.x === otherBombX &&
-                        cell.y === otherBombY
-                );
+                const hitBomb =
+                    affectedCells.some(
+                        cell =>
+                            cell.x === otherBombX &&
+                            cell.y === otherBombY
+                    );
 
-                if (hitBomb && otherBomb.active) {
+                if (
+                    hitBomb &&
+                    otherBomb.active
+                ) {
                     otherBomb.explode();
 
                     console.log(
@@ -133,7 +205,9 @@ function update(deltaTime) {
             ) {
                 player.bombs++;
 
-                console.log("Bomba recuperada");
+                console.log(
+                    "Bomba recuperada"
+                );
             }
 
             bombs.splice(i, 1);
@@ -148,18 +222,28 @@ function update(deltaTime) {
         }
 
         const playerCellX =
-            Math.floor(player.x / mapGenerator.tileSize);
+            Math.floor(
+                player.x /
+                mapGenerator.tileSize
+            );
 
         const playerCellY =
-            Math.floor(player.y / mapGenerator.tileSize);
+            Math.floor(
+                player.y /
+                mapGenerator.tileSize
+            );
 
-        const playerHit = explosion.cells.some(
-            cell =>
-                cell.x === playerCellX &&
-                cell.y === playerCellY
-        );
+        const playerHit =
+            explosion.cells.some(
+                cell =>
+                    cell.x === playerCellX &&
+                    cell.y === playerCellY
+            );
 
-        if (playerHit && !explosion.playerDamaged) {
+        if (
+            playerHit &&
+            !explosion.playerDamaged
+        ) {
             player.loseLife();
 
             explosion.playerDamaged = true;
@@ -168,43 +252,58 @@ function update(deltaTime) {
                 "Jugador alcanzado. Vidas restantes:",
                 player.lives
             );
-
-            }
         }
+    }
 
     input.endFrame();
 }
 
 function drawExit() {
-    const exitTile = mapGenerator.getTile(
-        mapGenerator.exit.x,
-        mapGenerator.exit.y
-    );
+    const exitTile =
+        mapGenerator.getTile(
+            mapGenerator.exit.x,
+            mapGenerator.exit.y
+        );
 
     if (exitTile !== 0) {
         return;
     }
-    const tileSize = mapGenerator.tileSize;
+
+    const tileSize =
+        mapGenerator.tileSize;
 
     const centerX =
-        mapGenerator.exit.x * tileSize + tileSize / 2;
+        mapGenerator.exit.x *
+        tileSize +
+        tileSize / 2;
 
     const centerY =
-        mapGenerator.exit.y * tileSize + tileSize / 2;
+        mapGenerator.exit.y *
+        tileSize +
+        tileSize / 2;
 
-    const time = performance.now() / 1000;
+    const time =
+        performance.now() / 1000;
 
-    const pulse = 3 + Math.sin(time * 4) * 3;
+    const pulse =
+        3 + Math.sin(time * 4) * 3;
 
     ctx.save();
 
-    ctx.translate(centerX, centerY);
+    ctx.translate(
+        centerX,
+        centerY
+    );
 
-    // Resplandor exterior
-    ctx.shadowColor = "#ff00ff";
-    ctx.shadowBlur = 20 + pulse;
+    ctx.shadowColor =
+        "#ff00ff";
 
-    ctx.strokeStyle = "#ff00ff";
+    ctx.shadowBlur =
+        20 + pulse;
+
+    ctx.strokeStyle =
+        "#ff00ff";
+
     ctx.lineWidth = 3;
 
     ctx.beginPath();
@@ -219,10 +318,11 @@ function drawExit() {
 
     ctx.stroke();
 
-    // Anillo interior
     ctx.shadowBlur = 10;
 
-    ctx.strokeStyle = "#00ffff";
+    ctx.strokeStyle =
+        "#00ffff";
+
     ctx.lineWidth = 2;
 
     ctx.beginPath();
@@ -237,8 +337,8 @@ function drawExit() {
 
     ctx.stroke();
 
-    // Núcleo
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle =
+        "#ffffff";
 
     ctx.beginPath();
 
@@ -252,11 +352,16 @@ function drawExit() {
 
     ctx.fill();
 
-    // Texto
     ctx.shadowBlur = 8;
-    ctx.fillStyle = "#00ffff";
-    ctx.font = "10px Arial";
-    ctx.textAlign = "center";
+
+    ctx.fillStyle =
+        "#00ffff";
+
+    ctx.font =
+        "10px Arial";
+
+    ctx.textAlign =
+        "center";
 
     ctx.fillText(
         "EXIT",
@@ -268,7 +373,8 @@ function drawExit() {
 }
 
 function draw() {
-    ctx.fillStyle = "#090914";
+    ctx.fillStyle =
+        "#090914";
 
     ctx.fillRect(
         0,
@@ -277,14 +383,28 @@ function draw() {
         canvas.height
     );
 
-    const tileSize = mapGenerator.tileSize;
+    const tileSize =
+        mapGenerator.tileSize;
 
-    for (let y = 0; y < mapGenerator.height; y++) {
-        for (let x = 0; x < mapGenerator.width; x++) {
-            const tile = mapGenerator.getTile(x, y);
+    for (
+        let y = 0;
+        y < mapGenerator.height;
+        y++
+    ) {
+        for (
+            let x = 0;
+            x < mapGenerator.width;
+            x++
+        ) {
+            const tile =
+                mapGenerator.getTile(
+                    x,
+                    y
+                );
 
             if (tile === 1) {
-                ctx.fillStyle = "#00ffff";
+                ctx.fillStyle =
+                    "#00ffff";
 
                 ctx.fillRect(
                     x * tileSize,
@@ -295,7 +415,8 @@ function draw() {
             }
 
             if (tile === 2) {
-                ctx.fillStyle = "#7a00ff";
+                ctx.fillStyle =
+                    "#7a00ff";
 
                 ctx.fillRect(
                     x * tileSize,
@@ -306,11 +427,17 @@ function draw() {
             }
         }
     }
-drawExit();
 
-    ctx.fillStyle = "#00ffff";
-    ctx.font = "24px Arial";
-    ctx.textAlign = "center";
+    drawExit();
+
+    ctx.fillStyle =
+        "#00ffff";
+
+    ctx.font =
+        "24px Arial";
+
+    ctx.textAlign =
+        "center";
 
     ctx.fillText(
         "BLAST MAZE",
@@ -318,7 +445,8 @@ drawExit();
         canvas.height / 2
     );
 
-    ctx.fillStyle = "#00ffff";
+    ctx.fillStyle =
+        "#00ffff";
 
     ctx.fillRect(
         player.x,
@@ -327,8 +455,40 @@ drawExit();
         player.height
     );
 
+    for (const enemy of enemies) {
+        if (!enemy.alive) {
+            continue;
+        }
+
+        ctx.fillStyle =
+            "#ff3030";
+
+        ctx.fillRect(
+            enemy.x,
+            enemy.y,
+            enemy.width,
+            enemy.height
+        );
+    }
+
+    for (const enemy of enemies) {
+    if (!enemy.alive) {
+        continue;
+    }
+
+    if (checkPlayerEnemyCollision(player, enemy)) {
+        player.loseLife();
+
+        console.log(
+            "Jugador golpeado por Rogue. Vidas restantes:",
+            player.lives
+        );
+    }
+}
+
     for (const bomb of bombs) {
-        ctx.fillStyle = "#ff00ff";
+        ctx.fillStyle =
+            "#ff00ff";
 
         ctx.beginPath();
 
@@ -349,7 +509,8 @@ drawExit();
         }
 
         for (const cell of explosion.cells) {
-            ctx.fillStyle = "#ff00ff";
+            ctx.fillStyle =
+                "#ff00ff";
 
             ctx.fillRect(
                 cell.x * tileSize,
@@ -361,6 +522,10 @@ drawExit();
     }
 }
 
-const gameLoop = new GameLoop(update, draw);
+const gameLoop =
+    new GameLoop(
+        update,
+        draw
+    );
 
 gameLoop.start();

@@ -16,6 +16,9 @@ export class Player {
         this.score = 0;
 
         this.alive = true;
+
+        this.invulnerable = false;
+        this.invulnerabilityTimer = 0;
     }
 
     move(dx, dy, deltaTime, collisionSystem) {
@@ -45,17 +48,40 @@ export class Player {
         this.range = 2;
 
         this.alive = true;
+
+        this.invulnerable = false;
+        this.invulnerabilityTimer = 0;
     }
 
     loseLife() {
-        if (this.lives > 0) {
-            this.lives--;
-        }
-
-        if (this.lives === 0) {
-            this.alive = false;
-        }
+    if (this.lives <= 0 || this.invulnerable) {
+        return false;
     }
+
+    this.lives--;
+
+    this.invulnerable = true;
+    this.invulnerabilityTimer = 2000; // 2 seconds of invulnerability
+
+    if (this.lives === 0) {
+        this.alive = false;
+    }
+
+    return true;
+}
+
+    update(deltaTime) {
+    if (!this.invulnerable) {
+        return;
+    }
+
+    this.invulnerabilityTimer -= deltaTime * 1000;
+
+    if (this.invulnerabilityTimer <= 0) {
+        this.invulnerable = false;
+        this.invulnerabilityTimer = 0;
+    }
+}
 
     addScore(points) {
         this.score += points;
