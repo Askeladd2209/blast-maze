@@ -9,7 +9,8 @@ export class Player {
         this.speed = 120;
 
         this.lives = 3;
-        this.bombs = 1;
+        this.bombs = 5;
+        this.maxBombs = 5;
         this.range = 2;
 
         this.score = 0;
@@ -39,7 +40,8 @@ export class Player {
         this.y = y;
 
         this.lives = 3;
-        this.bombs = 1;
+        this.bombs = 5;
+        this.maxBombs = 5;
         this.range = 2;
 
         this.alive = true;

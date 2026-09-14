@@ -79,6 +79,51 @@ export class Pathfinding {
     return [];
 }
 
+findReachableCells(startX, startY) {
+    const queue = [
+        {
+            x: startX,
+            y: startY
+        }
+    ];
+
+    const visited = new Set();
+    visited.add(`${startX},${startY}`);
+
+    const reachableCells = [];
+
+    while (queue.length > 0) {
+        const current = queue.shift();
+
+        reachableCells.push({
+            x: current.x,
+            y: current.y
+        });
+
+        const neighbors = this.getNeighbors(
+            current.x,
+            current.y
+        );
+
+        for (const neighbor of neighbors) {
+            const key = `${neighbor.x},${neighbor.y}`;
+
+            if (visited.has(key)) {
+                continue;
+            }
+
+            visited.add(key);
+
+            queue.push({
+                x: neighbor.x,
+                y: neighbor.y
+            });
+        }
+    }
+
+    return reachableCells;
+}
+
     heuristic(x1, y1, x2, y2) {
     return Math.abs(x1 - x2) + Math.abs(y1 - y2);
 }

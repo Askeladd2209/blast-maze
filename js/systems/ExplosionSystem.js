@@ -29,13 +29,40 @@ export class ExplosionSystem {
                     break;
                 }
 
+                const tile = this.mapGenerator.getTile(cellX, cellY);
+
+                if (tile === 1) {
+                    break;
+                }
+
                 cells.push({
                     x: cellX,
                     y: cellY
                 });
+
+                if (tile === 2) {
+                    break;
+                }
             }
         }
 
         return cells;
+    }
+
+    destroyBlocks(cells) {
+        for (const cell of cells) {
+            const tile = this.mapGenerator.getTile(
+                cell.x,
+                cell.y
+            );
+
+            if (tile === 2) {
+                this.mapGenerator.setTile(
+                    cell.x,
+                    cell.y,
+                    0
+                );
+            }
+        }
     }
 }

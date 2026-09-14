@@ -15,7 +15,7 @@ export class Bomb {
             return;
         }
 
-        this.timer -= deltaTime;
+        this.timer -= deltaTime * 1000;
 
         if (this.timer <= 0) {
             this.explode();
