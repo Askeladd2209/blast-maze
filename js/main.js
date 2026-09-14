@@ -3,14 +3,15 @@ import { GameLoop } from "./core/GameLoop.js";
 import { Player } from "./entities/Player.js";
 import { Bomb } from "./entities/Bomb.js";
 import { Explosion } from "./entities/Explosion.js";
+import { Enemy } from "./entities/Enemy.js";
 import { MapGenerator } from "./systems/MapGenerator.js";
 import { CollisionSystem } from "./systems/CollisionSystem.js";
 import { ExplosionSystem } from "./systems/ExplosionSystem.js";
-import { Enemy } from "./entities/Enemy.js";
 
 const input = new Input();
 
 const mapGenerator = new MapGenerator();
+
 mapGenerator.generate();
 
 const player = new Player(
@@ -18,8 +19,11 @@ const player = new Player(
     mapGenerator.tileSize
 );
 
-const collisionSystem = new CollisionSystem(mapGenerator);
-const explosionSystem = new ExplosionSystem(mapGenerator);
+const collisionSystem =
+    new CollisionSystem(mapGenerator);
+
+const explosionSystem =
+    new ExplosionSystem(mapGenerator);
 
 const bombs = [];
 const explosions = [];
@@ -35,10 +39,12 @@ const enemySpawnCandidates =
     reachableCells.filter(cell => {
         const distance =
             Math.abs(
-                cell.x - mapGenerator.playerSpawn.x
+                cell.x -
+                mapGenerator.playerSpawn.x
             ) +
             Math.abs(
-                cell.y - mapGenerator.playerSpawn.y
+                cell.y -
+                mapGenerator.playerSpawn.y
             );
 
         return distance >= 6;
@@ -53,45 +59,103 @@ const enemySpawn =
     ];
 
 const rogue = new Enemy(
-    enemySpawn.x * mapGenerator.tileSize,
-    enemySpawn.y * mapGenerator.tileSize,
+    enemySpawn.x *
+        mapGenerator.tileSize,
+    enemySpawn.y *
+        mapGenerator.tileSize,
     "rogue"
 );
 
+rogue.setTarget(player);
+
 enemies.push(rogue);
 
-console.log("Blast Maze iniciado correctamente");
+const hunterSpawnCandidates =
+    enemySpawnCandidates.filter(
+        cell =>
+            cell.x !== enemySpawn.x ||
+            cell.y !== enemySpawn.y
+    );
 
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+const hunterSpawn =
+    hunterSpawnCandidates[
+        Math.floor(
+            Math.random() *
+            hunterSpawnCandidates.length
+        )
+    ];
 
-function checkPlayerEnemyCollision(player, enemy) {
+const hunter = new Enemy(
+    hunterSpawn.x *
+        mapGenerator.tileSize,
+    hunterSpawn.y *
+        mapGenerator.tileSize,
+    "hunter"
+);
+
+hunter.setTarget(player);
+
+enemies.push(hunter);
+
+console.log(
+    "Blast Maze iniciado correctamente"
+);
+
+const canvas =
+    document.getElementById(
+        "gameCanvas"
+    );
+
+const ctx =
+    canvas.getContext("2d");
+
+function checkPlayerEnemyCollision(
+    player,
+    enemy
+) {
     return (
-        player.x < enemy.x + enemy.width &&
-        player.x + player.width > enemy.x &&
-        player.y < enemy.y + enemy.height &&
-        player.y + player.height > enemy.y
+        player.x <
+            enemy.x + enemy.width &&
+        player.x + player.width >
+            enemy.x &&
+        player.y <
+            enemy.y + enemy.height &&
+        player.y + player.height >
+            enemy.y
     );
 }
 
 function update(deltaTime) {
     player.update(deltaTime);
+
     let dx = 0;
     let dy = 0;
 
-    if (input.isDown("KeyW") || input.isDown("ArrowUp")) {
+    if (
+        input.isDown("KeyW") ||
+        input.isDown("ArrowUp")
+    ) {
         dy = -1;
     }
 
-    if (input.isDown("KeyS") || input.isDown("ArrowDown")) {
+    if (
+        input.isDown("KeyS") ||
+        input.isDown("ArrowDown")
+    ) {
         dy = 1;
     }
 
-    if (input.isDown("KeyA") || input.isDown("ArrowLeft")) {
+    if (
+        input.isDown("KeyA") ||
+        input.isDown("ArrowLeft")
+    ) {
         dx = -1;
     }
 
-    if (input.isDown("KeyD") || input.isDown("ArrowRight")) {
+    if (
+        input.isDown("KeyD") ||
+        input.isDown("ArrowRight")
+    ) {
         dx = 1;
     }
 
@@ -105,23 +169,53 @@ function update(deltaTime) {
     for (const enemy of enemies) {
         enemy.update(
             deltaTime,
-            collisionSystem
+            collisionSystem,
+            mapGenerator
         );
+    }
+
+    for (const enemy of enemies) {
+        if (!enemy.alive) {
+            continue;
+        }
+
+        if (
+            checkPlayerEnemyCollision(
+                player,
+                enemy
+            ) &&
+            !player.invulnerable
+        ) {
+            const damageApplied =
+                player.loseLife();
+
+            if (damageApplied) {
+                console.log(
+                    "Jugador golpeado por " +
+                    enemy.type +
+                    ". Vidas restantes:",
+                    player.lives
+                );
+            }
+        }
     }
 
     if (
         input.wasPressed("Space") &&
         player.bombs > 0
     ) {
-        const tileSize = mapGenerator.tileSize;
+        const tileSize =
+            mapGenerator.tileSize;
 
         const bombX =
-            Math.floor(player.x / tileSize) *
-            tileSize;
+            Math.floor(
+                player.x / tileSize
+            ) * tileSize;
 
         const bombY =
-            Math.floor(player.y / tileSize) *
-            tileSize;
+            Math.floor(
+                player.y / tileSize
+            ) * tileSize;
 
         bombs.push(
             new Bomb(
@@ -134,7 +228,11 @@ function update(deltaTime) {
         player.bombs--;
     }
 
-    for (let i = bombs.length - 1; i >= 0; i--) {
+    for (
+        let i = bombs.length - 1;
+        i >= 0;
+        i--
+    ) {
         const bomb = bombs[i];
 
         bomb.update(deltaTime);
@@ -142,8 +240,10 @@ function update(deltaTime) {
         if (bomb.exploded) {
             const affectedCells =
                 explosionSystem.calculateExplosion(
-                    bomb.x / mapGenerator.tileSize,
-                    bomb.y / mapGenerator.tileSize,
+                    bomb.x /
+                        mapGenerator.tileSize,
+                    bomb.y /
+                        mapGenerator.tileSize,
                     bomb.range
                 );
 
@@ -172,8 +272,10 @@ function update(deltaTime) {
                 const hitBomb =
                     affectedCells.some(
                         cell =>
-                            cell.x === otherBombX &&
-                            cell.y === otherBombY
+                            cell.x ===
+                                otherBombX &&
+                            cell.y ===
+                                otherBombY
                     );
 
                 if (
@@ -201,7 +303,8 @@ function update(deltaTime) {
 
             if (
                 Math.random() < 0.50 &&
-                player.bombs < player.maxBombs
+                player.bombs <
+                    player.maxBombs
             ) {
                 player.bombs++;
 
@@ -236,8 +339,10 @@ function update(deltaTime) {
         const playerHit =
             explosion.cells.some(
                 cell =>
-                    cell.x === playerCellX &&
-                    cell.y === playerCellY
+                    cell.x ===
+                        playerCellX &&
+                    cell.y ===
+                        playerCellY
             );
 
         if (
@@ -246,10 +351,12 @@ function update(deltaTime) {
         ) {
             player.loseLife();
 
-            explosion.playerDamaged = true;
+            explosion.playerDamaged =
+                true;
 
             console.log(
-                "Jugador alcanzado. Vidas restantes:",
+                "Jugador alcanzado. " +
+                "Vidas restantes:",
                 player.lives
             );
         }
@@ -274,19 +381,20 @@ function drawExit() {
 
     const centerX =
         mapGenerator.exit.x *
-        tileSize +
+            tileSize +
         tileSize / 2;
 
     const centerY =
         mapGenerator.exit.y *
-        tileSize +
+            tileSize +
         tileSize / 2;
 
     const time =
         performance.now() / 1000;
 
     const pulse =
-        3 + Math.sin(time * 4) * 3;
+        3 +
+        Math.sin(time * 4) * 3;
 
     ctx.save();
 
@@ -460,8 +568,15 @@ function draw() {
             continue;
         }
 
-        ctx.fillStyle =
-            "#ff3030";
+        if (enemy.type === "rogue") {
+            ctx.fillStyle =
+                "#ff3030";
+        }
+
+        if (enemy.type === "hunter") {
+            ctx.fillStyle =
+                "#ffff00";
+        }
 
         ctx.fillRect(
             enemy.x,
@@ -471,21 +586,6 @@ function draw() {
         );
     }
 
-    for (const enemy of enemies) {
-    if (!enemy.alive) {
-        continue;
-    }
-
-    if (checkPlayerEnemyCollision(player, enemy)) {
-        player.loseLife();
-
-        console.log(
-            "Jugador golpeado por Rogue. Vidas restantes:",
-            player.lives
-        );
-    }
-}
-
     for (const bomb of bombs) {
         ctx.fillStyle =
             "#ff00ff";
@@ -493,8 +593,10 @@ function draw() {
         ctx.beginPath();
 
         ctx.arc(
-            bomb.x + tileSize / 2,
-            bomb.y + tileSize / 2,
+            bomb.x +
+                tileSize / 2,
+            bomb.y +
+                tileSize / 2,
             12,
             0,
             Math.PI * 2
