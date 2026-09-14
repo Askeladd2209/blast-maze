@@ -82,6 +82,14 @@ export class Enemy {
                 mapGenerator
             );
         }
+
+        if (this.type === "predictor") {
+            this.updatePredictor(
+                deltaTime,
+                collisionSystem,
+                mapGenerator
+            );
+        }
     }
 
     updateRogue(
@@ -177,73 +185,258 @@ export class Enemy {
         const nextTile =
             this.path[0];
 
-        const tileSize =
-            mapGenerator.tileSize;
-
-        const targetX =
-            nextTile.x * tileSize;
-
-        const targetY =
-            nextTile.y * tileSize;
-
-        const deltaX =
-            targetX - this.x;
-
-        const deltaY =
-            targetY - this.y;
-
-        let directionX = 0;
-        let directionY = 0;
-
-        if (Math.abs(deltaX) > 2) {
-            directionX =
-                deltaX > 0 ? 1 : -1;
-        }
-
-        if (Math.abs(deltaY) > 2) {
-            directionY =
-                deltaY > 0 ? 1 : -1;
-        }
-
-        const newX =
-            this.x +
-            directionX *
-            this.speed *
-            deltaTime;
-
-        const newY =
-            this.y +
-            directionY *
-            this.speed *
-            deltaTime;
-
-        if (
-            collisionSystem.isPositionWalkable(
-                newX,
-                newY,
-                this.width,
-                this.height
-            )
-        ) {
-            this.x = newX;
-            this.y = newY;
-        }
-
-        const distanceToNode =
-            Math.abs(
-                targetX - this.x
-            ) +
-            Math.abs(
-                targetY - this.y
+        const reachedNode =
+            this.moveTowardPathNode(
+                nextTile,
+                deltaTime,
+                collisionSystem,
+                mapGenerator
             );
 
-        if (distanceToNode < 4) {
-            this.x = targetX;
-            this.y = targetY;
-
+        if (reachedNode) {
             this.path.shift();
         }
     }
+
+    calculatePredictedPosition(
+        mapGenerator
+    ) {
+        if (this.target === null) {
+            return null;
+        }
+
+        const predictionTiles = 3;
+
+        const predictionDistance =
+            predictionTiles *
+            mapGenerator.tileSize;
+
+        return {
+            x:
+                this.target.x +
+                this.target.direction.x *
+                predictionDistance,
+
+            y:
+                this.target.y +
+                this.target.direction.y *
+                predictionDistance
+        };
+    }
+
+    getPredictedTile(
+        mapGenerator
+    ) {
+        const predictedPosition =
+            this.calculatePredictedPosition(
+                mapGenerator
+            );
+
+        if (predictedPosition === null) {
+            return null;
+        }
+
+        const tileSize =
+            mapGenerator.tileSize;
+
+        return {
+            x: Math.floor(
+                predictedPosition.x /
+                tileSize
+            ),
+
+            y: Math.floor(
+                predictedPosition.y /
+                tileSize
+            )
+        };
+    }
+
+    calculatePredictorPath(
+        collisionSystem,
+        mapGenerator
+    ) {
+        if (this.target === null) {
+            return [];
+        }
+
+        const predictedTile =
+            this.getPredictedTile(
+                mapGenerator
+            );
+
+        if (predictedTile === null) {
+            return [];
+        }
+
+        const enemyTileX =
+            Math.floor(
+                this.x /
+                mapGenerator.tileSize
+            );
+
+        const enemyTileY =
+            Math.floor(
+                this.y /
+                mapGenerator.tileSize
+            );
+
+        if (
+            !mapGenerator.pathfinding.isWalkable(
+                predictedTile.x,
+                predictedTile.y
+            )
+        ) {
+            return [];
+        }
+
+        return mapGenerator.pathfinding.findPathBFS(
+            enemyTileX,
+            enemyTileY,
+            predictedTile.x,
+            predictedTile.y
+        );
+    }
+
+    updatePredictor(
+        deltaTime,
+        collisionSystem,
+        mapGenerator
+    ) {
+        if (this.target === null) {
+            return;
+        }
+
+        this.pathTimer -=
+            deltaTime * 1000;
+
+        if (this.pathTimer <= 0) {
+            this.path =
+                this.calculatePredictorPath(
+                    collisionSystem,
+                    mapGenerator
+                );
+
+            this.pathTimer =
+                this.pathUpdateInterval;
+        }
+
+        if (this.path.length === 0) {
+            return;
+        }
+
+        const nextTile =
+            this.path[0];
+
+        const reachedNode =
+            this.moveTowardPathNode(
+                nextTile,
+                deltaTime,
+                collisionSystem,
+                mapGenerator
+            );
+
+        if (reachedNode) {
+            this.path.shift();
+        }
+    }
+
+    moveTowardPathNode(
+    nextTile,
+    deltaTime,
+    collisionSystem,
+    mapGenerator
+) {
+    const tileSize =
+        mapGenerator.tileSize;
+
+    const targetX =
+        nextTile.x * tileSize;
+
+    const targetY =
+        nextTile.y * tileSize;
+
+    const distanceX =
+        targetX - this.x;
+
+    const distanceY =
+        targetY - this.y;
+
+    const movement =
+        this.speed * deltaTime;
+
+    let newX = this.x;
+    let newY = this.y;
+
+    /*
+     * BFS trabaja con cuatro direcciones.
+     * Por lo tanto, solamente avanzamos
+     * sobre un eje a la vez.
+     */
+
+    if (Math.abs(distanceX) > 0) {
+        const stepX =
+            Math.min(
+                movement,
+                Math.abs(distanceX)
+            );
+
+        newX =
+            this.x +
+            Math.sign(distanceX) *
+            stepX;
+    } else if (Math.abs(distanceY) > 0) {
+        const stepY =
+            Math.min(
+                movement,
+                Math.abs(distanceY)
+            );
+
+        newY =
+            this.y +
+            Math.sign(distanceY) *
+            stepY;
+    }
+
+    /*
+     * Comprobar la nueva posición
+     * antes de aplicarla.
+     */
+
+    if (
+        collisionSystem.isPositionWalkable(
+            newX,
+            newY,
+            this.width,
+            this.height
+        )
+    ) {
+        this.x = newX;
+        this.y = newY;
+    }
+
+    /*
+     * Si llegamos al nodo, hacemos una
+     * alineación exacta con la cuadrícula.
+     */
+
+    const remainingDistance =
+        Math.abs(
+            targetX - this.x
+        ) +
+        Math.abs(
+            targetY - this.y
+        );
+
+    if (remainingDistance <= 0.01) {
+        this.x = targetX;
+        this.y = targetY;
+
+        return true;
+    }
+
+    return false;
+}
 
     takeDamage() {
         this.alive = false;
@@ -270,7 +463,6 @@ export class Enemy {
         };
 
         this.directionTimer = 0;
-
         this.pathTimer = 0;
 
         this.chooseRandomDirection();

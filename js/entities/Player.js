@@ -8,6 +8,11 @@ export class Player {
 
         this.speed = 120;
 
+        this.direction = { 
+            x: 0,
+            y: 0
+        };
+
         this.lives = 3;
         this.bombs = 5;
         this.maxBombs = 5;
@@ -22,6 +27,9 @@ export class Player {
     }
 
     move(dx, dy, deltaTime, collisionSystem) {
+    this.direction.x = dx;
+    this.direction.y = dy;
+    
     const newX = this.x + dx * this.speed * deltaTime;
     const newY = this.y + dy * this.speed * deltaTime;
 
@@ -35,6 +43,12 @@ export class Player {
     ) {
         this.x = newX;
         this.y = newY;
+
+        this.direction.x = dx;
+        this.direction.y = dy;
+    } else {
+        this.direction.x = 0;
+        this.direction.y = 0;
     }
 }
 

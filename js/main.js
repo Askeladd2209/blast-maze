@@ -97,6 +97,33 @@ hunter.setTarget(player);
 
 enemies.push(hunter);
 
+const predictorSpawnCandidates =
+    hunterSpawnCandidates.filter(
+        cell =>
+            cell.x !== hunterSpawn.x ||
+            cell.y !== hunterSpawn.y
+    );
+
+const predictorSpawn =
+    predictorSpawnCandidates[
+        Math.floor(
+            Math.random() *
+            predictorSpawnCandidates.length
+        )
+    ];
+
+const predictor = new Enemy(
+    predictorSpawn.x *
+        mapGenerator.tileSize,
+    predictorSpawn.y *
+        mapGenerator.tileSize,
+    "predictor"
+);
+
+predictor.setTarget(player);
+
+enemies.push(predictor);
+
 console.log(
     "Blast Maze iniciado correctamente"
 );
@@ -576,6 +603,11 @@ function draw() {
         if (enemy.type === "hunter") {
             ctx.fillStyle =
                 "#ffff00";
+        }
+
+        if (enemy.type === "predictor") {
+            ctx.fillStyle =
+                "#ff00ff";
         }
 
         ctx.fillRect(
