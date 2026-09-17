@@ -319,14 +319,18 @@ function update(deltaTime) {
                 }
             }
 
-            explosions.push(
+            const explosion =
                 new Explosion(
                     bomb.x,
                     bomb.y,
                     bomb.range,
                     affectedCells
-                )
-            );
+                );
+
+            explosion.damagedEnemies =
+                new Set();
+
+            explosions.push(explosion);
 
             if (
                 Math.random() < 0.50 &&
@@ -386,6 +390,54 @@ function update(deltaTime) {
                 "Vidas restantes:",
                 player.lives
             );
+        }
+
+        for (const enemy of enemies) {
+            if (!enemy.alive) {
+                continue;
+            }
+
+            if (
+                explosion.damagedEnemies.has(
+                    enemy
+                )
+            ) {
+                continue;
+            }
+
+            const enemyCellX =
+                Math.floor(
+                    enemy.x /
+                    mapGenerator.tileSize
+                );
+
+            const enemyCellY =
+                Math.floor(
+                    enemy.y /
+                    mapGenerator.tileSize
+                );
+
+            const enemyHit =
+                explosion.cells.some(
+                    cell =>
+                        cell.x ===
+                            enemyCellX &&
+                        cell.y ===
+                            enemyCellY
+                );
+
+            if (enemyHit) {
+                enemy.setVulnerable();
+
+                explosion.damagedEnemies.add(
+                    enemy
+                );
+
+                console.log(
+                    "Enemigo vulnerable:",
+                    enemy.type
+                );
+            }
         }
     }
 
@@ -595,17 +647,32 @@ function draw() {
             continue;
         }
 
-        if (enemy.type === "rogue") {
+        if (
+            enemy.state ===
+            enemy.states.VULNERABLE
+        ) {
+            const blink =
+                Math.floor(
+                    performance.now() / 150
+                ) % 2 === 0;
+
+            ctx.fillStyle =
+                blink
+                    ? "#00ffff"
+                    : "#ffffff";
+        } else if (
+            enemy.type === "rogue"
+        ) {
             ctx.fillStyle =
                 "#ff3030";
-        }
-
-        if (enemy.type === "hunter") {
+        } else if (
+            enemy.type === "hunter"
+        ) {
             ctx.fillStyle =
                 "#ffff00";
-        }
-
-        if (enemy.type === "predictor") {
+        } else if (
+            enemy.type === "predictor"
+        ) {
             ctx.fillStyle =
                 "#ff00ff";
         }

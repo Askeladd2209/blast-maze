@@ -10,7 +10,14 @@ export class Enemy {
         this.speed = 80;
 
         this.alive = true;
-        this.state = "normal";
+        this.states = {
+            NORMAL: "normal",
+            VULNERABLE: "vulnerable",
+            DEFEATED: "defeated"
+        };
+
+        this.state = this.states.NORMAL;
+        this.vulnerableTimer = 0;
 
         this.target = null;
         this.path = [];
@@ -41,6 +48,24 @@ export class Enemy {
         this.path = path;
     }
 
+    changeState(newState) {
+            this.state = newState;
+        }
+
+        defeat() {
+            this.changeState(this.states.DEFEATED);
+            this.alive = false;
+        }
+
+        setVulnerable(duration = 3000) {
+            if (this.state === this.states.DEFEATED) {
+                return;
+            }
+
+            this.changeState(this.states.VULNERABLE);
+            this.vulnerableTimer = duration;
+        }
+
     chooseRandomDirection() {
         const directions = [
             { x: 1, y: 0 },
@@ -66,6 +91,17 @@ export class Enemy {
     ) {
         if (!this.alive) {
             return;
+        }
+
+        if (this.state === this.states.VULNERABLE) {
+            this.vulnerableTimer -=
+                deltaTime * 1000;
+
+            if (this.vulnerableTimer <= 0) {
+                this.vulnerableTimer = 0;
+                this.changeState(this.states.NORMAL);
+            }
+
         }
 
         if (this.type === "rogue") {
@@ -452,7 +488,7 @@ export class Enemy {
 
         this.type = type;
         this.alive = true;
-        this.state = "normal";
+        this.states = this.states.NORMAL;
 
         this.target = null;
         this.path = [];
