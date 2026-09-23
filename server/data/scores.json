@@ -1,0 +1,29 @@
+[
+    {
+        "player": "PLAYER",
+        "score": 0,
+        "level": 1,
+        "enemiesDefeated": 0,
+        "duration": 25,
+        "maxChain": 2,
+        "date": "2026-09-17T05:00:22.071Z"
+    },
+    {
+        "player": "PLAYER",
+        "score": 0,
+        "level": 1,
+        "enemiesDefeated": 0,
+        "duration": 11,
+        "maxChain": 0,
+        "date": "2026-09-17T18:39:00.125Z"
+    },
+    {
+        "player": "PLAYER",
+        "score": 0,
+        "level": 1,
+        "enemiesDefeated": 0,
+        "duration": 13,
+        "maxChain": 2,
+        "date": "2026-09-17T18:39:20.924Z"
+    }
+]

@@ -475,8 +475,24 @@ export class Enemy {
 }
 
     takeDamage() {
-        this.alive = false;
+    if (!this.alive) {
+        return false;
     }
+
+    if (this.state === this.states.NORMAL) {
+        this.setVulnerable();
+
+        return false;
+    }
+
+    if (this.state === this.states.VULNERABLE) {
+        this.defeat();
+
+        return true;
+    }
+
+    return false;
+}
 
     reset(
         x,
