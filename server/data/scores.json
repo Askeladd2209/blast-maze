@@ -1,29 +1,92 @@
 [
     {
         "player": "PLAYER",
-        "score": 0,
-        "level": 1,
-        "enemiesDefeated": 0,
-        "duration": 25,
+        "score": 1400,
+        "level": 2,
+        "enemiesDefeated": 4,
+        "duration": 41,
         "maxChain": 2,
-        "date": "2026-09-17T05:00:22.071Z"
+        "date": "2026-09-23T19:18:16.081Z"
     },
     {
         "player": "PLAYER",
-        "score": 0,
-        "level": 1,
-        "enemiesDefeated": 0,
-        "duration": 11,
-        "maxChain": 0,
-        "date": "2026-09-17T18:39:00.125Z"
+        "score": 700,
+        "level": 2,
+        "enemiesDefeated": 1,
+        "duration": 19,
+        "maxChain": 2,
+        "date": "2026-09-23T21:12:42.740Z"
     },
     {
         "player": "PLAYER",
-        "score": 0,
-        "level": 1,
-        "enemiesDefeated": 0,
-        "duration": 13,
+        "score": 700,
+        "level": 2,
+        "enemiesDefeated": 1,
+        "duration": 64,
         "maxChain": 2,
-        "date": "2026-09-17T18:39:20.924Z"
+        "date": "2026-09-23T21:20:42.460Z"
+    },
+    {
+        "player": "PLAYER",
+        "score": 600,
+        "level": 1,
+        "enemiesDefeated": 3,
+        "duration": 88,
+        "maxChain": 2,
+        "date": "2026-09-23T19:29:04.186Z"
+    },
+    {
+        "player": "PLAYER",
+        "score": 600,
+        "level": 1,
+        "enemiesDefeated": 3,
+        "duration": 24,
+        "maxChain": 2,
+        "date": "2026-09-23T19:33:12.252Z"
+    },
+    {
+        "player": "PLAYER",
+        "score": 500,
+        "level": 1,
+        "enemiesDefeated": 2,
+        "duration": 12,
+        "maxChain": 2,
+        "date": "2026-09-23T19:10:52.165Z"
+    },
+    {
+        "player": "PLAYER",
+        "score": 500,
+        "level": 1,
+        "enemiesDefeated": 2,
+        "duration": 19,
+        "maxChain": 3,
+        "date": "2026-09-23T20:00:11.067Z"
+    },
+    {
+        "player": "PLAYER",
+        "score": 500,
+        "level": 1,
+        "enemiesDefeated": 2,
+        "duration": 32,
+        "maxChain": 1,
+        "date": "2026-09-24T00:10:19.379Z"
+    },
+    {
+        "player": "PLAYER",
+        "score": 400,
+        "level": 1,
+        "enemiesDefeated": 2,
+        "duration": 18,
+        "maxChain": 2,
+        "date": "2026-09-23T22:16:03.700Z"
+    },
+    {
+        "player": "PLAYER",
+        "score": 300,
+        "level": 1,
+        "enemiesDefeated": 1,
+        "duration": 54,
+        "maxChain": 2,
+        "date": "2026-09-23T19:11:49.223Z"
     }
 ]
