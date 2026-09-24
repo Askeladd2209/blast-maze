@@ -1,6 +1,7 @@
 import { Input } from "./core/Input.js";
 import { GameLoop } from "./core/GameLoop.js";
 import { AssetManager } from "./core/AssetManager.js";
+import { AudioManager } from "./core/AudioManager.js";
 import { Player } from "./entities/Player.js";
 import { Bomb } from "./entities/Bomb.js";
 import { Explosion } from "./entities/Explosion.js";
@@ -11,6 +12,9 @@ import { CollisionSystem } from "./systems/CollisionSystem.js";
 import { ExplosionSystem } from "./systems/ExplosionSystem.js";
 
 const input = new Input();
+
+const audioManager =
+    new AudioManager();
 
 const assetManager =
     new AssetManager();
@@ -331,6 +335,8 @@ function completeLevel() {
 
     currentLevel++;
 
+    audioManager.playPause();
+
     console.log(
         "Nivel completado. Siguiente nivel:",
         currentLevel
@@ -558,6 +564,11 @@ function resetGame() {
 
     startLevel();
 
+    
+    audioManager.init();
+    audioManager.resume();
+    audioManager.startMusic("gameplay");
+
     gameState =
         GAME_STATES.PLAYING;
 
@@ -577,6 +588,9 @@ function setGameOver(reason) {
 
     gameState =
         GAME_STATES.GAME_OVER;
+
+        audioManager.stopMusic();
+        audioManager.playGameOver();
 
     saveScore();
 
@@ -611,6 +625,10 @@ function goToMainMenu() {
     powerUps.length = 0;
 
     levelCompleted = false;
+
+
+    audioManager.stopMusic();
+    audioManager.startMusic("menu");
 
     console.log(
         "Menú principal"
@@ -1006,6 +1024,8 @@ function update(deltaTime) {
             gameState =
                 GAME_STATES.PLAYING;
 
+                audioManager.playPause();
+
             console.log(
                 "Juego continuado"
             );
@@ -1034,6 +1054,9 @@ function update(deltaTime) {
 
         gameState =
             GAME_STATES.PAUSED;
+
+
+            audioManager.playPause();
 
         console.log(
             "Juego pausado"
@@ -1164,6 +1187,8 @@ function update(deltaTime) {
 
             if (damageApplied) {
 
+                audioManager.playEnemyHit();
+
                 console.log(
                     "Jugador golpeado por " +
                     enemy.type +
@@ -1231,6 +1256,8 @@ function update(deltaTime) {
                 player.range
             )
         );
+
+        audioManager.playBomb();
 
         player.bombs--;
 
@@ -1436,6 +1463,8 @@ function update(deltaTime) {
                 explosion
             );
 
+            audioManager.playBomb();
+
             if (
                 Math.random() <
                 0.50 &&
@@ -1498,9 +1527,14 @@ function update(deltaTime) {
             playerHit &&
             !explosion.playerDamaged
         ) {
+            
 
+            const damageApplied =
             player.loseLife();
-
+            
+            if (damageApplied) {
+                audioManager.playPlayerHit();
+            }
             explosion.playerDamaged =
                 true;
 
@@ -1573,6 +1607,8 @@ function update(deltaTime) {
                     .add(enemy);
 
                 if (defeated) {
+
+                    audioManager.playEnemyHit();
 
                     let points = 0;
 
@@ -1660,6 +1696,8 @@ function update(deltaTime) {
             powerUp.collect(
                 player
             );
+
+            audioManager.playPowerUp();
 
             console.log(
                 "Power-up recogido:",
